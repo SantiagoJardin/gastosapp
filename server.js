@@ -17,11 +17,12 @@ const JWT_SECRET = process.env.JWT_SECRET || 'gastos_app_secret_master_key_123';
 app.use(cors());
 app.use(express.json());
 
-// Optionally serve static Vite files in production
-// app.use(express.static(join(__dirname, 'dist')));
+// Serve static Vite files in production
+app.use(express.static(join(__dirname, 'dist')));
 
 // Database setup
-const dbPath = join(__dirname, 'database.sqlite');
+const dataDir = process.env.DATA_DIR || __dirname;
+const dbPath = join(dataDir, 'database.sqlite');
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('Error opening database', err);
@@ -200,6 +201,11 @@ app.delete('/api/categories/:id', authenticateToken, (req, res) => {
     // Also delete associated expenses? User didn't specify cascade, but let's keep it simple
     res.json({ success: true, deleted: this.changes });
   });
+});
+
+// React Catch-all route for frontend handling
+app.get('*', (req, res) => {
+  res.sendFile(join(__dirname, 'dist', 'index.html'));
 });
 
 // Start server
